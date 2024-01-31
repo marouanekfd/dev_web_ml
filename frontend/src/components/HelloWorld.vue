@@ -1,6 +1,3 @@
-<script setup>
-import axios from 'axios';
-</script>
 <template>
   <v-container>
     <v-row>
@@ -20,8 +17,7 @@ import axios from 'axios';
         <v-select
           v-model="selectedColumns"
           :items="columns"
-          label="Choisir des colonnes"
-          
+          label="Choississez votre target"
         ></v-select>
       </v-col>
 
@@ -44,6 +40,11 @@ export default {
     }
   },
   methods: {
+
+    goToNextStep() {
+      this.$emit('next-step', this.selectedColumns);
+    },
+
     filePicked(event) {
       this.file = event.target.files[0];
     },
@@ -60,23 +61,36 @@ export default {
       }
     },
     downloadSelectedColumns() {
-    if (this.columns && this.selectedColumns.length > 0) {
-      const formData = new FormData();
-      formData.append('file', this.file.name);
-      formData.append('target', this.selectedColumns);
-      axios.post("/api/predire", formData)
-        .then(response => {
-          console.log(response.data)
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+    if (this.file && this.selectedColumns.length > 0) {
+        const formData = new FormData();
+        formData.append('file', this.file);
+
+        // Envoie également la colonne sélectionnée au backend
+        formData.append('targetColumn', this.selectedColumns[0]);
+
+        fetch("/api/train-random-forest", { method: 'POST', body: formData })
+    .then(res => {
+        if (!res.ok) {
+            throw new Error( `HTTP error! Status: ${res.status}`);
+        }
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert(`Modèle Random Forest entraîné avec une précision de ${data.accuracy}`);
+        } else {
+            console.error('Erreur côté serveur:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors de la requête:', error);
+    });
     }
-  },
+},
   created() {
     fetch("/api/mode").then(res => res.json()).then(data => {
       this.devmode = data.devmode;
-      
+a
     });
   },
 }};
