@@ -21,7 +21,7 @@ import axios from 'axios';
           v-model="selectedColumns"
           :items="columns"
           label="Choisir des colonnes"
-          multiple
+          
         ></v-select>
       </v-col>
 
@@ -61,9 +61,12 @@ export default {
     },
     downloadSelectedColumns() {
     if (this.columns && this.selectedColumns.length > 0) {
+      const formData = new FormData();
+      formData.append('file', this.file.name);
+      formData.append('target', this.selectedColumns);
       axios.post("/api/predire", formData)
         .then(response => {
-          console.log(response)
+          console.log(response.data)
         })
         .catch(error => {
           console.error('Error:', error);

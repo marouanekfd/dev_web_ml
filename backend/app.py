@@ -1,7 +1,13 @@
-from flask import Flask, render_template, request, jsonify
+from io import BytesIO
+from flask import Flask, render_template, request, jsonify, send_file
+from matplotlib import pyplot as plt
 import pkg_resources
 import os
 import pandas as pds
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn import metrics
 
 devmode = True
 ALLOWED_EXTENSIONS = {'csv'}
@@ -48,11 +54,40 @@ def upload_file():
         os.makedirs(upload_folder)
 
     file_path = os.path.join(upload_folder, file.filename)
-    file.save(file_path)    
+    file.save(file_path)
     df = pds.read_csv(file_path)
     json_data = df.to_json(orient='records')
     columns_list = df.columns.tolist()
     return jsonify({'success': 'File successfully uploaded', 'data': columns_list})
 
+@app.route('/api/predire', methods=['POST'])
+def predict():
+    upload_folder = '../data'
+    file = request.form['file']
+
+    target = request.form['target']
+    file_path = os.path.join(upload_folder, file)
+    df = pds.read_csv(file_path)
+    X=df.drop(columns={target})
+    y=df[target]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    clf=RandomForestClassifier(n_estimators=100)
+    clf.fit(X_train,y_train)
+
+    y_pred=clf.predict(X_test)
+    return jsonify({'success': 'model success', 'data': metrics.accuracy_score(y_test, y_pred)})
+
+@app.route('/api/visualisation', methods=['POST'])
+def vizu():
+    upload_folder = '../data'
+    file = request.files['file']
+    file_path = os.path.join(upload_folder, file.filename)
+    df = pds.read_csv(file_path)
+    fig = plt.figure(figsize=(10, 8))
+    sns.pairplot(df)
+    img = BytesIO()
+    fig.savefig(img, format='png')
+    img.seek(0)
+    return send_file(img, mimetype='image/png')
 if __name__ == '__main__':
     app.run(port=4000,debug=devmode)
