@@ -70,25 +70,6 @@ export default {
         formData.append('targetColumn', this.selectedColumns);
         this.$emit('target', this.selectedColumns);
         console.log(this.selectedColumns);
-/** 
-        fetch("/api/train-random-forest", { method: 'POST', body: formData })
-    .then(res => {
-        if (!res.ok) {
-            throw new Error( `HTTP error! Status: ${res.status}`);
-        }
-        return res.json();
-    })
-    .then(data => {
-        if (data.success) {
-            alert(`Modèle Random Forest entraîné avec une précision de ${data.accuracy}`);
-        } else {
-            console.error('Erreur côté serveur:', data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Erreur lors de la requête:', error);
-    });
-    **/
     }
 },
   created() {

@@ -76,25 +76,8 @@ def upload_file():
     columns_list = df.columns.tolist()
     return jsonify({'success': 'File successfully uploaded', 'data': columns_list})
 
-@app.route('/api/train-random-forest', methods=['POST'])
-def predict():
-    upload_folder = '../data'
-    file = request.form['file']
 
-    target = request.form['target']
-    file_path = os.path.join(upload_folder, file)
-    df = pds.read_csv(file_path)
-    X=df.drop(columns={target})
-    y=df[target]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-    clf=RandomForestClassifier(n_estimators=100)
-    clf.fit(X_train,y_train)
-
-    y_pred=clf.predict(X_test)
-    return jsonify({'success': 'model success', 'data': accuracy_score(y_test, y_pred)})
-
-
-@app.route('/api/submit-kmeans-params', methods=['POST'])
+@app.route('/api/train', methods=['POST'])
 def train():
     # Algorithme machine learning
     data = request.json
@@ -103,6 +86,7 @@ def train():
     m = data['params']['max_iter']
     k = data['params']['n_clusters']
     t = data['params']['tol']
+    target = data.get('target')
 
     iris_data = pds.read_csv('../data/iris.csv', sep = ",")
 
@@ -128,7 +112,7 @@ def train():
 
     dataset_name = "iris.csv"
 
-    saving_models.save_model(kmeans, dataset_name, token)
+    saving_models.save_model(kmeans, dataset_name, token, target)
 
 
     #print("Score silhouette:", silhouette)

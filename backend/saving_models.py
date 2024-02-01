@@ -10,13 +10,13 @@ def generate_token():
     return str(token)
 
 
-def save_model(model, dataset_name, token, additional_info=None):
+def save_model(model, dataset_name, token, target):
 
     model_info = {
         'model': model,
         'dataset_name': dataset_name,
         'token': token,
-        'additional_info': additional_info
+        'target': target
     }
 
     # Create 'saved_models' directory if it doesn't exist

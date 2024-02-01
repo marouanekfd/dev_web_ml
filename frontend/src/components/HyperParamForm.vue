@@ -35,26 +35,7 @@
           <v-slider id="trainSizeSlider" v-model="split.train_size" min="0" max="100" :step="1"></v-slider>
         </v-col>
       </v-row>
-      <!-- Nouveau : Sélecteur de dataset -->
-    <v-row>
-      <v-col cols="12">
-        <v-select
-          label="Sélectionner un dataset"
-          :items="dataFiles"
-          v-model="selectedDataset"
-          @change="loadDataFiles"
-        ></v-select>
-      </v-col>
-    </v-row>
 
-    <!-- Nouveau : Bouton pour sélectionner la colonne cible -->
-    <v-row v-if="selectedDataset">
-      <v-col cols="12">
-        <v-btn @click="selectTargetColumn">
-          Sélectionner la colonne cible
-        </v-btn>
-      </v-col>
-    </v-row>
       <v-row>
         <v-col cols="12">
           <v-btn type="submit" color="primary">Configurer le modèle et le fractionnement</v-btn>
@@ -82,6 +63,7 @@
 
 <script>
 export default {
+  props:['target'],
   data() {
     return {
       params: {
@@ -94,61 +76,29 @@ export default {
         train_size: 70, // Valeur initiale de 70% pour l'entraînement
       },
       apiResponse: null,
-      dataFiles: [],
-      selectedDataFile: null,
-      targetColumn: null,
 
 
     };
   },
-  mounted() {
-    this.loadDataFiles();
-  },
-  methods: {
-    selectTargetColumn() {
-      // Ici, tu peux ouvrir un dialogue ou une nouvelle vue pour sélectionner la colonne cible
-      // Pour l'instant, je vais simplement logger le dataset sélectionné
-      console.log("Dataset sélectionné:", this.selectedDataset);
-      // Tu devras implémenter la logique pour sélectionner la colonne cible
-    },
-  
-    async loadDataFiles() {
-      // Utilise l'objet `options` pour configurer la méthode `POST` et les headers si nécessaire
-      const options = {
-        method: 'POST',
-        headers: {
-          // Ajoute des headers si ton API en a besoin, par exemple un Content-Type ou des tokens d'authentification
-          'Content-Type': 'application/json'
-        },
-        // Si ton endpoint attend un corps de requête, ajoute-le ici
-        // body: JSON.stringify({ someData: 'yourValue' })
-      };
 
-      try {
-        const response = await fetch('/api/data-files', options);
-        if (response.ok) {
-          const files = await response.json();
-          this.dataFiles = files;
-        } else {
-          console.error('Erreur lors du chargement des fichiers de données:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Erreur lors de la connexion au serveur:', error);
-      }
-    },
+  methods: {
+  
     async submitForm() {
       console.log('Hyperparamètres KMeans soumis:', this.params);
       console.log('Fractionnement Train/Test:', this.split.train_size);
+      console.log('target:', this.target);
 
       try {
-        const response = await fetch('/api/submit-kmeans-params', {
+        const response = await fetch('/api/train', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             params: this.params,
-            split: this.split
+            split: this.split,
+            target: this.target
+
           })
         });
 
