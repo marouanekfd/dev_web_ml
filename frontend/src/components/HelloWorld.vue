@@ -36,7 +36,8 @@ export default {
       devmode: undefined,
       file: '',
       columns: [],
-      selectedColumns: []
+      selectedColumns: [],
+      target:''
     }
   },
   methods: {
@@ -56,7 +57,7 @@ export default {
         fetch("/api/upload", {method:'POST', body: formData})
                 .then(res => res.json()).then(data => {
                 this.columns = data.data;
-                console.log(this.columns)
+                this.$emit('dataInfo', data);
             });
       }
     },
@@ -66,8 +67,10 @@ export default {
         formData.append('file', this.file);
 
         // Envoie également la colonne sélectionnée au backend
-        formData.append('targetColumn', this.selectedColumns[0]);
-
+        formData.append('targetColumn', this.selectedColumns);
+        this.$emit('target', this.selectedColumns);
+        console.log(this.selectedColumns);
+/** 
         fetch("/api/train-random-forest", { method: 'POST', body: formData })
     .then(res => {
         if (!res.ok) {
@@ -85,12 +88,13 @@ export default {
     .catch(error => {
         console.error('Erreur lors de la requête:', error);
     });
+    **/
     }
 },
   created() {
     fetch("/api/mode").then(res => res.json()).then(data => {
       this.devmode = data.devmode;
-a
+
     });
   },
 }};

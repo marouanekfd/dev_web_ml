@@ -4,18 +4,16 @@
       <v-main>
         <v-stepper v-model="step" :items="items" show-actions>
           <template v-slot:item.1>
-            <HelloWorld />
-            <!-- Le reste du contenu pour la première étape -->
+            <HelloWorld v-on:dataInfo="setDataInfo" v-on:target="setTarget" />
           </template>
 
           <template v-slot:item.2>
-            <!-- Contenu de la deuxième étape (laissez-le vide pour l'instant) -->
             <HyperParamForm v-if=" step === 2" />
 
           </template>
 
           <template v-slot:item.3>
-            <!-- Contenu de la troisième étape (laissez-le vide pour l'instant) -->
+            <PredictForm v-if=" step === 3" v-bind:dataInfo="dataInfo"  :target="target"/>
           </template>
         </v-stepper>
       </v-main>
@@ -26,6 +24,7 @@
 <script>
 import HelloWorld from '@/components/HelloWorld.vue';
 import HyperParamForm from '@/components/HyperParamForm.vue';
+import PredictForm from './components/PredictForm.vue';
 
 export default {
   components: {
@@ -37,10 +36,21 @@ export default {
       items: [
         'Choisir le dataset',
         'Selection du modèle',
-        'Submit',
+        'Prédire',
       ],
+      dataInfo: null,
+      target:null
     };
-  },
+   }, // Add a closing brace here
+  methods:{
+    setDataInfo(dataInfo){
+      this.dataInfo = dataInfo;
+    },
+    setTarget(target){
+      this.target = target;
+      console.log('setTarget',this.target)
+    }
+  }
 
 };
 </script>

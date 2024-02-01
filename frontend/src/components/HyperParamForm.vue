@@ -96,7 +96,6 @@ export default {
         });
 
         const responseData = await response.json();
-        console.log(responseData);
         this.apiResponse = responseData;
       } catch (error) {
         console.error('Erreur lors de l\'envoi des données:', error);
