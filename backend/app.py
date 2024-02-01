@@ -135,13 +135,13 @@ def train():
     return jsonify({"silhouette": silhouette, "token": token})
 
 
-@app.route('/api/predict/<token>', methods=['POST'])
-def predict(token):
-    filename = os.path.join('saved_models', f'model_{token}.pkl')
-    with open(filename, 'rb') as file:
-        model_info = pickle.load(file)
-    prediction = model_info['model'].predict(pds.DataFrame([request.json]))[0]
-    return jsonify({"status": "Reçu et renvoyé", "prediction": prediction})
+#@app.route('/api/predict/<token>', methods=['POST'])
+#def predict(token):
+ #   filename = os.path.join('saved_models', f'model_{token}.pkl')
+  #  with open(filename, 'rb') as file:
+   #     model_info = pickle.load(file)
+    #prediction = model_info['model'].predict(pds.DataFrame([request.json]))[0]
+    #return jsonify({"status": "Reçu et renvoyé", "prediction": prediction})
 
 
 @app.route('/api/delete-model', methods=['POST'])
@@ -162,7 +162,14 @@ def list_data_files():
         # Gère les exceptions, comme un dossier 'data' non trouvé
         return jsonify({"error": str(e)}), 500
 
-
+@app.route('/api/form_to_predict', methods=['POST'])
+def form_to_predict():
+    try:
+        data_info = request.form.get('dataInfo')
+        values = request.form.get('values')
+        return jsonify({'valeurs': values})
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
     app.run(port=4000,debug=devmode)

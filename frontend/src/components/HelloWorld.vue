@@ -22,7 +22,7 @@
       </v-col>
 
       <v-col>
-        <v-btn @click="downloadSelectedColumns" color="success">Prédire</v-btn>
+        <v-btn @click="downloadSelectedColumns" color="success">Valider target</v-btn>
       </v-col>
     </v-row>
   </v-container>
