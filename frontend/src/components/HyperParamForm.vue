@@ -82,6 +82,7 @@
 
 <script>
 export default {
+  props:['filename'],
   data() {
     return {
       params: {
@@ -123,7 +124,6 @@ export default {
         // Si ton endpoint attend un corps de requête, ajoute-le ici
         // body: JSON.stringify({ someData: 'yourValue' })
       };
-
       try {
         const response = await fetch('/api/data-files', options);
         if (response.ok) {
@@ -139,6 +139,7 @@ export default {
     async submitForm() {
       console.log('Hyperparamètres KMeans soumis:', this.params);
       console.log('Fractionnement Train/Test:', this.split.train_size);
+      console.log(this.filename)
 
       try {
         const response = await fetch('/api/submit-kmeans-params', {

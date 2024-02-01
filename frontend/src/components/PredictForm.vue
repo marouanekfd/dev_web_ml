@@ -2,7 +2,12 @@
 
         <v-container class="hyperparam-form">
             <v-col>
+              
+              
                 <v-form @submit.prevent="submitForm">
+                  <v-col >
+                <v-text-field v-model="values['token']" >Token: </v-text-field>
+                    </v-col>
                     <v-col v-for="(item, index) in dataInfo.data" :key="item">
                         <v-text-field v-if="item !== target" :label="item" v-model="values[item]"></v-text-field>
                     </v-col>
@@ -10,12 +15,13 @@
                 </v-form>
             </v-col>
         </v-container>
+        
 
   </template>
 
   <script>
   export default {
-    props:['dataInfo', 'target'],
+    props:['dataInfo', 'target', 'filename'],
     data() {
       return {
         params: {
@@ -42,13 +48,13 @@
     // Ajoutez les données au formulaire
     formData.append('dataInfo', JSON.stringify(this.dataInfo.data));
     formData.append('values', JSON.stringify(this.values));
+    console.log(formData)
 
     try {
       const response = await fetch("/api/form_to_predict", { method: 'POST', body: formData });
       const data = await response.json();
 
       this.json_predict = data.valeurs;
-      console.log('my_data',this.json_predict);
 
     } catch (error) {
       console.error('Erreur lors de l\'envoi des données:', error);

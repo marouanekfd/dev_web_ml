@@ -59,6 +59,9 @@ export default {
                 this.columns = data.data;
                 this.$emit('dataInfo', data);
             });
+
+            this.$emit('filename', this.file.name);
+            
       }
     },
     downloadSelectedColumns() {

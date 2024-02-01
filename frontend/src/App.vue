@@ -4,11 +4,11 @@
       <v-main>
         <v-stepper v-model="step" :items="items" show-actions>
           <template v-slot:item.1>
-            <HelloWorld v-on:dataInfo="setDataInfo" v-on:target="setTarget" />
+            <HelloWorld v-on:dataInfo="setDataInfo" v-on:target="setTarget" v-on:filename="setFilename" />
           </template>
 
           <template v-slot:item.2>
-            <HyperParamForm v-if=" step === 2" />
+            <HyperParamForm v-if=" step === 2"  :filename="filename"/>
 
           </template>
 
@@ -39,16 +39,22 @@ export default {
         'Prédire',
       ],
       dataInfo: null,
-      target:null
+      target:null, 
+      filename: null
     };
    }, // Add a closing brace here
   methods:{
     setDataInfo(dataInfo){
       this.dataInfo = dataInfo;
+      console.log('fichier', dataInfo)
     },
     setTarget(target){
       this.target = target;
       console.log('setTarget',this.target)
+    },
+    setFilename(filename){
+      this.filename = filename;
+      console.log('setFilename',this.filename)
     }
   }
 
