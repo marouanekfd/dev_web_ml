@@ -22,7 +22,7 @@
       </v-col>
 
       <v-col>
-        <v-btn @click="downloadSelectedColumns" color="success">Prédire</v-btn>
+        <v-btn @click="downloadSelectedColumns" color="success">Valider target</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -59,6 +59,9 @@ export default {
                 this.columns = data.data;
                 this.$emit('dataInfo', data);
             });
+
+            this.$emit('filename', this.file.name);
+            
       }
     },
     downloadSelectedColumns() {

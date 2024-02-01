@@ -2,20 +2,26 @@
 
         <v-container class="hyperparam-form">
             <v-col>
+              
+              
                 <v-form @submit.prevent="submitForm">
-                    <v-col v-for="(item, index) in dataInfo.data" :key="index">
-                        <v-text-field v-if="item !== target" :label="item"></v-text-field>
+                  <v-col >
+                <v-text-field v-model="values['token']" >Token: </v-text-field>
+                    </v-col>
+                    <v-col v-for="(item, index) in dataInfo.data" :key="item">
+                        <v-text-field v-if="item !== target" :label="item" v-model="values[item]"></v-text-field>
                     </v-col>
                     <v-btn type="submit" color="primary">Envoyer</v-btn>
                 </v-form>
             </v-col>
         </v-container>
+        
 
   </template>
 
   <script>
   export default {
-    props:['dataInfo', 'target'],
+    props:['dataInfo', 'target', 'filename'],
     data() {
       return {
         params: {
@@ -27,38 +33,34 @@
         split: {
           train_size: 70, // Valeur initiale de 70% pour l'entraînement
         },
-        apiResponse: null
+        apiResponse: null,
+        columns : this.dataInfo.data,
+        values: {},
+        json_predict: null
   
   
       };
     },
     methods: {
       async submitForm() {
+    const formData = new FormData();
 
-        const formData = new FormData();
-        formData.append('dataInfo', this.dataInfo.data);
-        formData.append('target', this.target);
-        console.log(formData)
-        try {
-          const response = await fetch('/api/form_to_predict', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              params: this.params,
-              split: this.split
-            })
-          });
-  
-          const responseData = await response.json();
-          console.log(responseData);
-          this.apiResponse = responseData;
-        } catch (error) {
-          console.error('Erreur lors de l\'envoi des données:', error);
-        }
-      },
-    
+    // Ajoutez les données au formulaire
+    formData.append('dataInfo', JSON.stringify(this.dataInfo.data));
+    formData.append('values', JSON.stringify(this.values));
+    console.log(formData)
+
+    try {
+      const response = await fetch("/api/form_to_predict", { method: 'POST', body: formData });
+      const data = await response.json();
+
+      this.json_predict = data.valeurs;
+
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi des données:', error);
+    }
+  },
+
     showToken() {
       if (this.apiResponse && this.apiResponse.token) {
         alert(`Token: ${this.apiResponse.token}`);
