@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
-
+import pickle
 
 devmode = True
 ALLOWED_EXTENSIONS = {'csv'}
@@ -95,7 +95,7 @@ def predict():
 
 
 @app.route('/api/submit-kmeans-params', methods=['POST'])
-def handle_kmeans_params():
+def train():
     # Algorithme machine learning
     data = request.json
     print(data)
@@ -135,13 +135,32 @@ def handle_kmeans_params():
     return jsonify({"silhouette": silhouette, "token": token})
 
 
-    #return jsonify({"status": "Reçu et renvoyé", "data": data})
+@app.route('/api/predict/<token>', methods=['POST'])
+def predict(token):
+    filename = os.path.join('saved_models', f'model_{token}.pkl')
+    with open(filename, 'rb') as file:
+        model_info = pickle.load(file)
+    prediction = model_info['model'].predict(pds.DataFrame([request.json]))[0]
+    return jsonify({"status": "Reçu et renvoyé", "prediction": prediction})
 
 
 @app.route('/api/delete-model', methods=['POST'])
 def delete_model():
     data = request.json
     return saving_models.delete_model(data['token'])
+
+
+@app.route('/api/data-files', methods=['POST'])
+def list_data_files():
+    # Le chemin vers ton dossier 'data', ajuste si nécessaire
+    data_directory = '../data'
+    try:
+        # Liste tous les fichiers dans le dossier 'data'
+        files = [f for f in os.listdir(data_directory) if os.path.isfile(os.path.join(data_directory, f))]
+        return jsonify(files)
+    except Exception as e:
+        # Gère les exceptions, comme un dossier 'data' non trouvé
+        return jsonify({"error": str(e)}), 500
 
 
 
