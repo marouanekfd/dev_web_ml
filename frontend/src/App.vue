@@ -4,13 +4,13 @@
       <v-main>
         <v-stepper v-model="step" :items="items" show-actions>
           <template v-slot:item.1>
-            <HelloWorld v-on:target="setTarget" />
+            <HelloWorld v-on:target="setTarget" v-on:filename="setFilename" />
             <!-- Le reste du contenu pour la première étape -->
           </template>
 
           <template v-slot:item.2>
             <!-- Contenu de la deuxième étape (laissez-le vide pour l'instant) -->
-            <HyperParamForm v-if=" step === 2" :target="target"/>
+            <HyperParamForm v-if=" step === 2" :target="target" :filename="filename"/>
 
           </template>
 
@@ -39,13 +39,23 @@ export default {
         'Selection du modèle',
         'Prédire',
       ],
-      target: null,
+      dataInfo:null,
+      target: null, 
+      filename: null,
+
     };
   },
   methods:{
+    setDataInfo(dataInfo){
+      this.dataInfo = dataInfo;
+    },
     setTarget(target){
       this.target = target
       console.log("setTarget", this.target)
+    },
+    setFilename(filename){
+      this.filename = filename;
+      console.log('setFilename',this.filename)
     }
   }
 

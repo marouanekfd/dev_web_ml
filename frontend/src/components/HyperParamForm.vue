@@ -63,7 +63,11 @@
 
 <script>
 export default {
+<<<<<<< HEAD
   props:['target'],
+=======
+  props:['filename'],
+>>>>>>> 566e093bf46d0631050c698c8ecd51f71350dfb3
   data() {
     return {
       params: {
@@ -80,6 +84,7 @@ export default {
 
     };
   },
+<<<<<<< HEAD
 
   methods: {
   
@@ -87,6 +92,46 @@ export default {
       console.log('Hyperparamètres KMeans soumis:', this.params);
       console.log('Fractionnement Train/Test:', this.split.train_size);
       console.log('target:', this.target);
+=======
+  mounted() {
+    this.loadDataFiles();
+  },
+  methods: {
+    selectTargetColumn() {
+      // Ici, tu peux ouvrir un dialogue ou une nouvelle vue pour sélectionner la colonne cible
+      // Pour l'instant, je vais simplement logger le dataset sélectionné
+      console.log("Dataset sélectionné:", this.selectedDataset);
+      // Tu devras implémenter la logique pour sélectionner la colonne cible
+    },
+  
+    async loadDataFiles() {
+      // Utilise l'objet `options` pour configurer la méthode `POST` et les headers si nécessaire
+      const options = {
+        method: 'POST',
+        headers: {
+          // Ajoute des headers si ton API en a besoin, par exemple un Content-Type ou des tokens d'authentification
+          'Content-Type': 'application/json'
+        },
+        // Si ton endpoint attend un corps de requête, ajoute-le ici
+        // body: JSON.stringify({ someData: 'yourValue' })
+      };
+      try {
+        const response = await fetch('/api/data-files', options);
+        if (response.ok) {
+          const files = await response.json();
+          this.dataFiles = files;
+        } else {
+          console.error('Erreur lors du chargement des fichiers de données:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la connexion au serveur:', error);
+      }
+    },
+    async submitForm() {
+      console.log('Hyperparamètres KMeans soumis:', this.params);
+      console.log('Fractionnement Train/Test:', this.split.train_size);
+      console.log(this.filename)
+>>>>>>> 566e093bf46d0631050c698c8ecd51f71350dfb3
 
       try {
         const response = await fetch('/api/train', {
