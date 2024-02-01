@@ -1,90 +1,148 @@
 <template>
-    <div>
-      <h2>Configuration du modèle KMeans</h2>
-      <form @submit.prevent="submitForm">
-        <div>
-          <label for="n_clusters">Nombre de clusters (K) :</label>
-          <input type="number" id="n_clusters" v-model.number="params.n_clusters" min="1">
-        </div>
-  
-        <div>
-          <label for="init">Initiation des centroids :</label>
-          <select id="init" v-model="params.init">
-            <option value="k-means++">k-means++</option>
-            <option value="random">Aléatoire</option>
-          </select>
-        </div>
-  
-        <div>
-          <label for="max_iter">Nombre maximal d'itérations :</label>
-          <input type="number" id="max_iter" v-model.number="params.max_iter" min="1">
-        </div>
-  
-        <div>
-          <label for="tol">Tolérance pour la convergence :</label>
-          <input type="number" id="tol" v-model.number="params.tol" min="0">
-        </div>
+  <v-container class="hyperparam-form">
+    <v-form @submit.prevent="submitForm">
+      <v-row>
+        <v-col cols="12">
+          <v-label for="n_clusters">Nombre de clusters (K) :</v-label>
+          <v-text-field id="n_clusters" v-model.number="params.n_clusters" type="number" min="1"></v-text-field>
+        </v-col>
+      </v-row>
 
-        <div>
-        <label for="trainSizeSlider">Pourcentage pour l'ensemble d'entraînement: {{ split.train_size }}%</label>
-        <input type="range" id="trainSizeSlider" v-model="split.train_size" min="0" max="100">
-      </div>
+      <v-row>
+        <v-col cols="12">
+          <v-label for="init">Initiation des centroids :</v-label>
+          <v-select id="init" v-model="params.init" :items="['k-means++', 'random']"></v-select>
+        </v-col>
+      </v-row>
 
-      <button type="submit">Configurer le modèle et le fractionnement</button>
-    </form>
-  </div>
+      <v-row>
+        <v-col cols="12">
+          <v-label for="max_iter">Nombre maximal d'itérations :</v-label>
+          <v-text-field id="max_iter" v-model.number="params.max_iter" type="number" min="1"></v-text-field>
+        </v-col>
+      </v-row>
+
+      <v-row>
+        <v-col cols="12">
+          <v-label for="tol">Tolérance pour la convergence :</v-label>
+          <v-text-field id="tol" v-model.number="params.tol" type="number" min="0"></v-text-field>
+        </v-col>
+      </v-row>
+
+      <v-row class="slider-container">
+        <v-col cols="12">
+          <v-label for="trainSizeSlider">Pourcentage pour l'ensemble d'entraînement: {{ split.train_size }}%</v-label>
+          <v-slider id="trainSizeSlider" v-model="split.train_size" min="0" max="100"></v-slider>
+        </v-col>
+      </v-row>
+
+      <v-row>
+        <v-col cols="12">
+          <v-btn type="submit" color="primary">Configurer le modèle et le fractionnement</v-btn>
+        </v-col>
+      </v-row>
+    </v-form>
+    <v-row v-if="apiResponse">
+      <v-col>
+        <h3>Réponse reçue du serveur :</h3>
+        <pre>{{ apiResponse }}</pre>
+      </v-col>
+
+      <v-col cols="12">
+        <!-- Bouton pour afficher le token -->
+        <v-btn @click="showToken" color="secondary">Afficher le Token</v-btn>
+
+        <!-- Bouton pour supprimer le modèle -->
+        <v-btn @click="deleteModel" color="error">Supprimer mon modèle</v-btn>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 
-  <script>
-  export default {
-    data() {
-      return {
-        params: {
-          n_clusters: 3,
-          init: 'k-means++',
-          max_iter: 300,
-          tol: 1
-        },
-        split: {
+<script>
+export default {
+  data() {
+    return {
+      params: {
+        n_clusters: 3,
+        init: 'k-means++',
+        max_iter: 300,
+        tol: 1
+      },
+      split: {
         train_size: 70, // Valeur initiale de 70% pour l'entraînement
-      }
+      },
+      apiResponse: null
+
+
     };
   },
   methods: {
-  async submitForm() {
-    console.log('Hyperparamètres KMeans soumis:', this.params);
-    console.log('Fractionnement Train/Test:', this.split.train_size);
+    async submitForm() {
+      console.log('Hyperparamètres KMeans soumis:', this.params);
+      console.log('Fractionnement Train/Test:', this.split.train_size);
 
-    try {
-      const response = await fetch('/api/submit-kmeans-params', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          params: this.params,
-          split: this.split
-        })
-      });
+      try {
+        const response = await fetch('/api/submit-kmeans-params', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            params: this.params,
+            split: this.split
+          })
+        });
 
-      const responseData = await response.json();
-      console.log(responseData);
-    } catch (error) {
-      console.error('Erreur lors de l\'envoi des données:', error);
+        const responseData = await response.json();
+        console.log(responseData);
+        this.apiResponse = responseData;
+      } catch (error) {
+        console.error('Erreur lors de l\'envoi des données:', error);
+      }
+    },
+  
+  showToken() {
+    if (this.apiResponse && this.apiResponse.token) {
+      alert(`Token: ${this.apiResponse.token}`);
+    } else {
+      alert("Aucun token disponible.");
     }
+  },
+
+  async deleteModel() {
+  if (!this.apiResponse || !this.apiResponse.token) {
+    alert("Token non disponible pour la suppression du modèle.");
+    return;
   }
-}
+
+  try {
+    const response = await fetch('/api/delete-model', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token: this.apiResponse.token })
+    });
+    const responseData = await response.json();
+    alert("Modèle supprimé avec succès.");
+  } catch (error) {
+    console.error('Erreur lors de la suppression du modèle:', error);
+    alert("Erreur lors de la suppression du modèle.");
+  }
+}}
 };
 </script>
 
 
 <style scoped>
 .hyperparam-form {
-  max-width: 500px; /* Limite la largeur du formulaire */
+  max-width: 500px;
+  /* Limite la largeur du formulaire */
   margin: auto;
   padding: 20px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .slider-container {
@@ -92,29 +150,37 @@
 }
 
 .slider {
-  width: 100%; /* Pleine largeur à l'intérieur du container */
-  height: 25px; /* Hauteur du slider */
-  background: #efefef; /* Couleur de fond du slider */
-  outline: none; /* Supprime l'outline pour un look plus net */
-  opacity: 0.7; /* Transparence légère */
-  -webkit-transition: .2s; /* Transition pour l'effet de survol */
+  width: 100%;
+  /* Pleine largeur à l'intérieur du container */
+  height: 25px;
+  /* Hauteur du slider */
+  background: #efefef;
+  /* Couleur de fond du slider */
+  outline: none;
+  /* Supprime l'outline pour un look plus net */
+  opacity: 0.7;
+  /* Transparence légère */
+  -webkit-transition: .2s;
+  /* Transition pour l'effet de survol */
   transition: opacity .2s;
 }
 
 .slider:hover {
-  opacity: 1; /* Opacité totale lors du survol */
+  opacity: 1;
+  /* Opacité totale lors du survol */
 }
-  
+
 
 button {
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #0056b3;
-  }
-  </style>
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+</style>

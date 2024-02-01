@@ -3,7 +3,7 @@ import pkg_resources
 import os
 import pandas as pds
 import csv
-
+import saving_models
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -27,7 +27,7 @@ def detect_delimiter(csv_file):
 
         return dialect.delimiter
     
-app = Flask(_name_,
+app = Flask(__name__,
         static_folder = "../frontend/dist/assets",
         template_folder = "../frontend/dist")
 
@@ -91,7 +91,7 @@ def predict():
     clf.fit(X_train,y_train)
 
     y_pred=clf.predict(X_test)
-    return jsonify({'success': 'model success', 'data': metrics.accuracy_score(y_test, y_pred)})
+    return jsonify({'success': 'model success', 'data': accuracy_score(y_test, y_pred)})
 
 
 @app.route('/api/submit-kmeans-params', methods=['POST'])
@@ -104,7 +104,7 @@ def handle_kmeans_params():
     k = data['params']['n_clusters']
     t = data['params']['tol']
 
-    iris_data = pds.read_csv('/Users/gabrielpapalia/Desktop/Cours/MASTER IDA/M2 /Untitled Folder/templateFlaskVue/data/iris.csv', sep = ";")
+    iris_data = pds.read_csv('../data/iris.csv', sep = ",")
 
     # Préparer les données pour l'entraînement
     # Supposons que les quatre premières colonnes sont des caractéristiques
@@ -113,6 +113,7 @@ def handle_kmeans_params():
     # Normalisation des caractéristiques
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
+
 
     # Entraînement de KMeans
     kmeans = KMeans(n_clusters=k, random_state=42, init =i, max_iter =m,tol = t) 
@@ -123,12 +124,26 @@ def handle_kmeans_params():
 
     # Évaluation avec le score silhouette
     silhouette = silhouette_score(X_scaled, labels)
+    token = saving_models.generate_token()
+
+    dataset_name = "iris.csv"
+
+    saving_models.save_model(kmeans, dataset_name, token)
+
 
     #print("Score silhouette:", silhouette)
-    return jsonify(silhouette)
+    return jsonify({"silhouette": silhouette, "token": token})
 
 
     #return jsonify({"status": "Reçu et renvoyé", "data": data})
 
-if _name_ == '_main_':
+
+@app.route('/api/delete-model', methods=['POST'])
+def delete_model():
+    data = request.json
+    return saving_models.delete_model(data['token'])
+
+
+
+if __name__ == '__main__':
     app.run(port=4000,debug=devmode)
