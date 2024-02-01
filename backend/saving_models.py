@@ -30,7 +30,6 @@ def save_model(model, dataset_name, token, additional_info=None):
     print(f'Model saved to {filename}')
 
 
-
 def load_model(token):
     """
     Load a machine learning model from a pickle file in the 'saved_models' directory,
