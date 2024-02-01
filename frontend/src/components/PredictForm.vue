@@ -44,14 +44,18 @@
     methods: {
       async submitForm() {
     const formData = new FormData();
-
+    console.log(this.values)
     // Ajoutez les données au formulaire
     formData.append('dataInfo', JSON.stringify(this.dataInfo.data));
-    formData.append('values', JSON.stringify(this.values));
+    formData.append('values', JSON.stringify(str(this.values)));
+
+    
     console.log(formData)
 
+    
+
     try {
-      const response = await fetch("/api/form_to_predict", { method: 'POST', body: formData });
+      const response = await fetch("/api/predict", { method: 'POST', body: formData });
       const data = await response.json();
 
       this.json_predict = data.valeurs;

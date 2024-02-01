@@ -4,7 +4,7 @@
       <v-main>
         <v-stepper v-model="step" :items="items" show-actions>
           <template v-slot:item.1>
-            <HelloWorld v-on:target="setTarget" v-on:filename="setFilename" />
+            <HelloWorld v-on:target="setTarget" v-on:filename="setFilename" v-on:dataInfo="setDataInfo"/>
             <!-- Le reste du contenu pour la première étape -->
           </template>
 
@@ -15,7 +15,7 @@
           </template>
 
           <template v-slot:item.3>
-            <!-- Contenu de la troisième étape (laissez-le vide pour l'instant) -->
+            <PredictForm v-if=" step === 3" :filename="filename" :target="target" :dataInfo="dataInfo"/>
           </template>
         </v-stepper>
       </v-main>
@@ -26,11 +26,14 @@
 <script>
 import HelloWorld from '@/components/HelloWorld.vue';
 import HyperParamForm from '@/components/HyperParamForm.vue';
+import PredictForm from './components/PredictForm.vue';
 
 export default {
   components: {
     HelloWorld,
-  },
+    PredictForm, 
+    HyperParamForm
+},
   data() {
     return {
       step: 1,

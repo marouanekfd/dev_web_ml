@@ -81,26 +81,33 @@ def upload_file():
 def train():
     # Algorithme machine learning
     data = request.json
-    print(data)
+
+    # Paramètres pour KMeans
     i = data['params']['init']
     m = data['params']['max_iter']
     k = data['params']['n_clusters']
     t = data['params']['tol']
     target = data.get('target')
 
-    iris_data = pds.read_csv('../data/iris.csv', sep = ",")
-
-    # Préparer les données pour l'entraînement
-    # Supposons que les quatre premières colonnes sont des caractéristiques
-    X = iris_data.iloc[:, :-1]
+    # Nom du dataset
+    dataset_name = data.get('filename')  # Assure-toi que le nom du dataset est passé dans la requête
+    
+    # Chargement du dataset
+    try:
+        dataset = pds.read_csv(f'../data/{dataset_name}', sep=",")
+    except FileNotFoundError:
+        return jsonify({"error": "Fichier non trouvé"}), 402
+    
+    # Préparation des données pour l'entraînement
+    X = dataset.drop(target, axis=1)
+    #y = dataset[target]
 
     # Normalisation des caractéristiques
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-
     # Entraînement de KMeans
-    kmeans = KMeans(n_clusters=k, random_state=42, init =i, max_iter =m,tol = t) 
+    kmeans = KMeans(n_clusters=k, init=i, max_iter=m, tol=t, random_state=42)
     kmeans.fit(X_scaled)
 
     # Prédiction des clusters
@@ -110,22 +117,21 @@ def train():
     silhouette = silhouette_score(X_scaled, labels)
     token = saving_models.generate_token()
 
-    dataset_name = "iris.csv"
-
+    # Sauvegarde du modèle
     saving_models.save_model(kmeans, dataset_name, token, target)
 
-
-    #print("Score silhouette:", silhouette)
     return jsonify({"silhouette": silhouette, "token": token})
 
 
-#@app.route('/api/predict/<token>', methods=['POST'])
-#def predict(token):
- #   filename = os.path.join('saved_models', f'model_{token}.pkl')
-  #  with open(filename, 'rb') as file:
-   #     model_info = pickle.load(file)
-    #prediction = model_info['model'].predict(pds.DataFrame([request.json]))[0]
-    #return jsonify({"status": "Reçu et renvoyé", "prediction": prediction})
+@app.route('/api/predict', methods=['POST'])
+def predict():
+    token = request.form['values']
+    return jsonify({"toek": token})
+    filename = os.path.join('saved_models', f'model_{token}.pkl')
+    with open(filename, 'rb') as file:
+        model_info = pickle.load(file)
+    prediction = model_info['model'].predict(pds.DataFrame([request.json]))[0]
+    return jsonify({"status": "Reçu et renvoyé", "prediction": prediction})
 
 
 @app.route('/api/delete-model', methods=['POST'])
@@ -146,14 +152,7 @@ def list_data_files():
         # Gère les exceptions, comme un dossier 'data' non trouvé
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/form_to_predict', methods=['POST'])
-def form_to_predict():
-    try:
-        data_info = request.form.get('dataInfo')
-        values = request.form.get('values')
-        return jsonify({'valeurs': values})
-    except Exception as e:
-        return jsonify({'error': str(e)})
+
 
 if __name__ == '__main__':
     app.run(port=4000,debug=devmode)
