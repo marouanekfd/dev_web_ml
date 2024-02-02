@@ -22,7 +22,7 @@
       </v-col>
 
       <v-col>
-        <v-btn @click="downloadSelectedColumns" color="success">Prédire</v-btn>
+        <v-btn @click="downloadSelectedColumns" color="success">Valider Target</v-btn>
       </v-col>
     </v-row>
   </v-container>
@@ -73,6 +73,7 @@ export default {
         console.log(this.selectedColumns);
     }
     this.$emit('filename', this.file.name);
+    alert('Target sélectionné: ' + this.selectedColumns);
 },
   created() {
     fetch("/api/mode").then(res => res.json()).then(data => {

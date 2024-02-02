@@ -4,7 +4,7 @@
       <v-main>
         <v-stepper v-model="step" :items="items" show-actions>
           <template v-slot:item.1>
-            <HelloWorld v-on:target="setTarget" v-on:filename="setFilename" v-on:dataInfo="setDataInfo"/>
+            <Upload v-on:target="setTarget" v-on:filename="setFilename" v-on:dataInfo="setDataInfo" />
             <!-- Le reste du contenu pour la première étape -->
           </template>
 
@@ -24,13 +24,13 @@
 </template>
 
 <script>
-import HelloWorld from '@/components/HelloWorld.vue';
+import Upload from '@/components/Upload.vue';
 import HyperParamForm from '@/components/HyperParamForm.vue';
 import PredictForm from './components/PredictForm.vue';
 
 export default {
   components: {
-    HelloWorld,
+    Upload,
     PredictForm, 
     HyperParamForm
 },
@@ -59,7 +59,7 @@ export default {
     setFilename(filename){
       this.filename = filename;
       console.log('setFilename',this.filename)
-    }
+    },
   }
 
 };

@@ -5,10 +5,9 @@ import pandas as pds
 import csv
 import saving_models
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-import json
-from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
 import pickle
@@ -67,7 +66,7 @@ def upload_file():
         os.makedirs(upload_folder)
 
     file_path = os.path.join(upload_folder, file.filename)
-    file.save(file_path)  
+    file.save(file_path)
 
     delimiter = detect_delimiter(file_path)
 
@@ -76,80 +75,73 @@ def upload_file():
     columns_list = df.columns.tolist()
     return jsonify({'success': 'File successfully uploaded', 'data': columns_list})
 
-
 @app.route('/api/train', methods=['POST'])
 def train():
-    # Algorithme machine learning
     data = request.json
-
-    # Paramètres pour KMeans
-   
     target = data.get('target')
+    n_estimators = data['params'].get('n_estimators')
+    max_depth = data['params'].get('max_depth')
+    random_state = data['params'].get('random_state')
+    min_samples_split = data['params'].get('min_samples_split')
+    dataset_name = data.get('filename')
+    split = data['split'].get('train_size') / 100
     
-    n_estimators = data['params'].get('n_estimators', 100)
-    max_depth = data['params'].get('max_depth', None)
-    random_state = data['params'].get('random_state', 42)
-    # Nom du dataset
-    dataset_name = data.get('filename')  # Assure-toi que le nom du dataset est passé dans la requête
-    
-    # Chargement du dataset
     try:
         dataset = pds.read_csv(f'../data/{dataset_name}', sep=",")
     except FileNotFoundError:
         return jsonify({"error": "Fichier non trouvé"}), 402
-    
-    # Préparation des données pour l'entraînement
     X = dataset.drop(target, axis=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, dataset[target], train_size=split, random_state=42)
 
-    # Normalisation des caractéristiques
     scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    try:
+        if(data['params'].get('model') == 'RandomForestClassifier'):
+            rf = RandomForestClassifier(
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                random_state=random_state,
+                min_samples_split=min_samples_split
+            )
+        else:
+            rf = RandomForestRegressor(
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                random_state=random_state,
+                min_samples_split=min_samples_split
+            )
+        rf.fit(X_train_scaled, y_train)
+    except Exception as e:
+        return jsonify({"error": "Veuillez choisir un autre modèle"}), 500
+    y_pred_test = rf.predict(X_test_scaled)
+    y_pred_train = rf.predict(X_train_scaled)
 
-    # Entraînement de RandomForestClassifier
-    rf_classifier = RandomForestClassifier(
-        n_estimators=n_estimators,
-        max_depth=max_depth,
-        random_state=random_state,
-        # Ajoutez d'autres hyperparamètres ici, si nécessaire
-    )
-    rf_classifier.fit(X_scaled, dataset[target])
+    accuracy_test = accuracy_score(y_test, y_pred_test)
+    accuracy_train = accuracy_score(y_train, y_pred_train)
 
-    y_pred = rf_classifier.predict(X_scaled)
-    accuracy = accuracy_score(dataset[target], y_pred)
-    # Évaluation avec le score silhouette
-    #silhouette = silhouette_score(X_scaled, labels)
     token = saving_models.generate_token()
 
-    # Sauvegarde du modèle
-    saving_models.save_model(rf_classifier, dataset_name, token, target)
-    
-    return jsonify({"silhouette": accuracy, "token": token})
+    saving_models.save_model(rf, dataset_name, token, target)
+    return jsonify({"accuracy_test": accuracy_test,'accuracy_train': accuracy_train, "token": token})
 
 @app.route('/api/data', methods=['POST'])
 
 def data():
     values_data = request.form['values']
     return jsonify({ "values": values_data, 'values_data': values_data})
-    
 
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
     token = request.form['token']
-    data = request.form['values'] 
-    
+    data = request.form['values']
     filename = os.path.join('saved_models', f'model_{token}.pkl')
     with open(filename, 'rb') as file:
         model_info = pickle.load(file)
     df = pds.read_json(data, orient='index')
-    # Transposez le DataFrame
     df = df.T
-    print('---------------') 
-
-    
     prediction = model_info['model'].predict(df.iloc[0:1, :])
-    print(prediction)
-    print('--------------')
     return jsonify({"prediction": prediction[0]})
 
 
@@ -162,14 +154,11 @@ def delete_model():
 
 @app.route('/api/data-files', methods=['POST'])
 def list_data_files():
-    # Le chemin vers ton dossier 'data', ajuste si nécessaire
     data_directory = '../data'
     try:
-        # Liste tous les fichiers dans le dossier 'data'
         files = [f for f in os.listdir(data_directory) if os.path.isfile(os.path.join(data_directory, f))]
         return jsonify(files)
     except Exception as e:
-        # Gère les exceptions, comme un dossier 'data' non trouvé
         return jsonify({"error": str(e)}), 500
 
 

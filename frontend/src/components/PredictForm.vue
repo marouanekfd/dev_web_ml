@@ -1,9 +1,10 @@
 <template>
 
         <v-container class="hyperparam-form">
+    <v-alert  colored dense outlined type="info">
+      Veuillez entrer les données à prédire.
+    </v-alert>
             <v-col>
-              
-              
                 <v-form @submit.prevent="submitForm">
                   <v-col >
                 <v-text-field v-model="values['token']" >Token: </v-text-field>
@@ -26,9 +27,6 @@
       </v-col>
     </v-row>
         </v-container>
-        
-        
-
   </template>
 
   <script>
@@ -43,7 +41,7 @@
           tol: 1
         },
         split: {
-          train_size: 70, // Valeur initiale de 70% pour l'entraînement
+          train_size: 70,
         },
         apiResponse: null,
         columns : this.dataInfo.data,
@@ -51,23 +49,13 @@
         key:"",
         json_predict: null,
         prediction: null
-  
-  
       };
     },
     methods: {
       async submitForm() {
     const formData = new FormData();
-    // Ajoutez les données au formulaire
     formData.append('dataInfo', JSON.stringify(this.dataInfo.data));
     formData.append('values', JSON.stringify(this.values));
-
-
-    
-    console.log(formData)
-
-    
-
     try {
       const response = await fetch("/api/data", { method: 'POST', body: formData });
       const data = await response.json();
@@ -79,7 +67,6 @@
       console.error('Erreur lors de l\'envoi des données:', error);
     }
     const formData_predict = new FormData();
-    // Ajoutez les données au formulaire
     formData_predict.append('token', token);
     formData_predict.append('values', JSON.stringify(values));
 
@@ -93,8 +80,6 @@
     } catch (error) {
       console.error('Erreur lors de l\'envoi des données:', error);
     }
-
-    
   },
 
     showToken() {
@@ -104,13 +89,11 @@
         alert("Aucun token disponible.");
       }
     },
-  
     async deleteModel() {
     if (!this.apiResponse || !this.apiResponse.token) {
       alert("Token non disponible pour la suppression du modèle.");
       return;
     }
-  
     try {
       const response = await fetch('/api/delete-model', {
         method: 'POST',
@@ -128,8 +111,6 @@
   }}
   };
   </script>
-  
-  
   <style scoped>
   .hyperparam-form {
     max-width: 500px;
@@ -138,11 +119,9 @@
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
-  
   .slider-container {
     margin: 20px 0;
   }
-  
   .slider {
     width: 100%;
     /* Pleine largeur à l'intérieur du container */
@@ -158,13 +137,10 @@
     /* Transition pour l'effet de survol */
     transition: opacity .2s;
   }
-  
   .slider:hover {
     opacity: 1;
     /* Opacité totale lors du survol */
   }
-  
-  
   button {
     padding: 10px 15px;
     background-color: #007bff;
@@ -173,7 +149,6 @@
     border-radius: 4px;
     cursor: pointer;
   }
-  
   button:hover {
     background-color: #0056b3;
   }
