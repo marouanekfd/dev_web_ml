@@ -7,7 +7,7 @@ import saving_models
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-
+import json
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
@@ -83,12 +83,12 @@ def train():
     data = request.json
 
     # Paramètres pour KMeans
-    i = data['params']['init']
-    m = data['params']['max_iter']
-    k = data['params']['n_clusters']
-    t = data['params']['tol']
+   
     target = data.get('target')
-
+    
+    n_estimators = data['params'].get('n_estimators', 100)
+    max_depth = data['params'].get('max_depth', None)
+    random_state = data['params'].get('random_state', 42)
     # Nom du dataset
     dataset_name = data.get('filename')  # Assure-toi que le nom du dataset est passé dans la requête
     
@@ -100,38 +100,58 @@ def train():
     
     # Préparation des données pour l'entraînement
     X = dataset.drop(target, axis=1)
-    #y = dataset[target]
 
     # Normalisation des caractéristiques
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Entraînement de KMeans
-    kmeans = KMeans(n_clusters=k, init=i, max_iter=m, tol=t, random_state=42)
-    kmeans.fit(X_scaled)
+    # Entraînement de RandomForestClassifier
+    rf_classifier = RandomForestClassifier(
+        n_estimators=n_estimators,
+        max_depth=max_depth,
+        random_state=random_state,
+        # Ajoutez d'autres hyperparamètres ici, si nécessaire
+    )
+    rf_classifier.fit(X_scaled, dataset[target])
 
-    # Prédiction des clusters
-    labels = kmeans.labels_
-
+    y_pred = rf_classifier.predict(X_scaled)
+    accuracy = accuracy_score(dataset[target], y_pred)
     # Évaluation avec le score silhouette
-    silhouette = silhouette_score(X_scaled, labels)
+    #silhouette = silhouette_score(X_scaled, labels)
     token = saving_models.generate_token()
 
     # Sauvegarde du modèle
-    saving_models.save_model(kmeans, dataset_name, token, target)
+    saving_models.save_model(rf_classifier, dataset_name, token, target)
+    
+    return jsonify({"silhouette": accuracy, "token": token})
 
-    return jsonify({"silhouette": silhouette, "token": token})
+@app.route('/api/data', methods=['POST'])
+
+def data():
+    values_data = request.form['values']
+    return jsonify({ "values": values_data, 'values_data': values_data})
+    
 
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
-    token = request.form['values']
-    return jsonify({"toek": token})
+    token = request.form['token']
+    data = request.form['values'] 
+    
     filename = os.path.join('saved_models', f'model_{token}.pkl')
     with open(filename, 'rb') as file:
         model_info = pickle.load(file)
-    prediction = model_info['model'].predict(pds.DataFrame([request.json]))[0]
-    return jsonify({"status": "Reçu et renvoyé", "prediction": prediction})
+    df = pds.read_json(data, orient='index')
+    # Transposez le DataFrame
+    df = df.T
+    print('---------------') 
+
+    
+    prediction = model_info['model'].predict(df.iloc[0:1, :])
+    print(prediction)
+    print('--------------')
+    return jsonify({"prediction": prediction[0]})
+
 
 
 @app.route('/api/delete-model', methods=['POST'])

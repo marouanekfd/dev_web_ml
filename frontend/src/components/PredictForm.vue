@@ -14,7 +14,19 @@
                     <v-btn type="submit" color="primary">Envoyer</v-btn>
                 </v-form>
             </v-col>
+            <v-row v-if="prediction !== null">
+      <v-col>
+        <v-card>
+          <v-card-title>Résultat de la prédiction</v-card-title>
+          <v-card-text>
+            <!-- Afficher les détails de la prédiction ici -->
+            <p>{{ this.prediction }}</p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
         </v-container>
+        
         
 
   </template>
@@ -36,7 +48,9 @@
         apiResponse: null,
         columns : this.dataInfo.data,
         values: {},
-        json_predict: null
+        key:"",
+        json_predict: null,
+        prediction: null
   
   
       };
@@ -44,10 +58,10 @@
     methods: {
       async submitForm() {
     const formData = new FormData();
-    console.log(this.values)
     // Ajoutez les données au formulaire
     formData.append('dataInfo', JSON.stringify(this.dataInfo.data));
-    formData.append('values', JSON.stringify(str(this.values)));
+    formData.append('values', JSON.stringify(this.values));
+
 
     
     console.log(formData)
@@ -55,14 +69,32 @@
     
 
     try {
-      const response = await fetch("/api/predict", { method: 'POST', body: formData });
+      const response = await fetch("/api/data", { method: 'POST', body: formData });
       const data = await response.json();
-
-      this.json_predict = data.valeurs;
+      var values = JSON.parse(data.values);
+      delete values.token;
+      var token = JSON.parse(data.values).token
 
     } catch (error) {
       console.error('Erreur lors de l\'envoi des données:', error);
     }
+    const formData_predict = new FormData();
+    // Ajoutez les données au formulaire
+    formData_predict.append('token', token);
+    formData_predict.append('values', JSON.stringify(values));
+
+    try {
+      const response = await fetch("/api/predict", { method: 'POST', body: formData_predict });
+      const data = await response.json();
+      console.log(data)
+      this.prediction = data.prediction;
+      console.log(this.prediction)
+
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi des données:', error);
+    }
+
+    
   },
 
     showToken() {
